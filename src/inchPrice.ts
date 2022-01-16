@@ -5,7 +5,7 @@ import { BigNumber, ethers } from "ethers";
 import axios from "axios";
 import { chainId, protocols, initialAmount, diffAmount } from "./config";
 import { IRoute } from "./interfaces/main";
-import { ERC20Token, IToken } from "./constrants/addresses";
+import { ERC20Token, IToken } from "./constants/addresses";
 import { replaceTokenAddress } from "./utils";
 
 /**
@@ -37,6 +37,46 @@ function get1inchQuoteCallUrl(
     protocols;
 
   return callURL;
+}
+
+/**
+ * Will call the api and return the current price
+ * @param fromTokenAddress token address you're swapping from
+ * @param toTokenAddress token address you're swapping to
+ * @param amount amount of token you're swappping from
+ * @returns the current token price
+ */
+export async function get1inchQuote(
+  fromTokenAddress: string,
+  toTokenAddress: string,
+  amount: string = ethers.utils.parseUnits("1.0", 18).toString()
+): Promise<number | null> {
+  let callURL =
+    "https://api.1inch.exchange/v4.0/" +
+    chainId +
+    "/quote" +
+    "?" +
+    // contract address of a token to sell
+    "fromTokenAddress=" +
+    fromTokenAddress +
+    "&" +
+    // contract address of a token to buy
+    "toTokenAddress=" +
+    toTokenAddress +
+    "&" +
+    // amount of a token to sell
+    "amount=" +
+    amount;
+
+  const result = await sendRequest(callURL);
+  if (!result) {
+    return null;
+  }
+  let tokenAmount = result.toTokenAmount;
+
+  const rate = ethers.utils.formatUnits(tokenAmount, 18).slice(0, 9);
+
+  return parseFloat(rate);
 }
 
 /**
