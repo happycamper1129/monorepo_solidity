@@ -1,7 +1,7 @@
 import { ethers } from "ethers";
 import * as FlashloanJson from "./abis/Flashloan.json";
 import { flashloanAddress, loanAmount, gasLimit, gasPrice } from "./config";
-import { IToken, dodoV2Pool, uniswapRouter } from "./constants/addresses";
+import { IToken, dodoV2Pool, uniswapRouter } from "./constrants/addresses";
 import { IFlashloanRoute, IParams, IRoute } from "./interfaces/main";
 import { getUniswapV3PoolFee } from "./uniswap/v3/fee";
 import { getBigNumber } from "./utils/index";
@@ -51,7 +51,7 @@ export const flashloan = async (
 
   params = {
     flashLoanPool: getLendingPool(tokenIn),
-    loanAmount: getBigNumber(loanAmount, 6),
+    loanAmount: getBigNumber(loanAmount, tokenIn.decimals),
     firstRoutes: changeToFlashloanRoute(tokenIn, firstRoutes),
     secondRoutes: changeToFlashloanRoute(tokenOut, secondRoutes),
   };

@@ -3,9 +3,9 @@ dotEnvConfig();
 import chalk = require("chalk");
 import { BigNumber, ethers } from "ethers";
 import axios from "axios";
-import { chainId, protocols, initialAmount, diffAmount } from "./config";
+import { chainId, protocols, diffAmount, loanAmount } from "./config";
 import { IRoute } from "./interfaces/main";
-import { ERC20Token, IToken } from "./constants/addresses";
+import { ERC20Token, IToken } from "./constrants/addresses";
 import { replaceTokenAddress } from "./utils";
 
 /**
@@ -40,46 +40,6 @@ function get1inchQuoteCallUrl(
 }
 
 /**
- * Will call the api and return the current price
- * @param fromTokenAddress token address you're swapping from
- * @param toTokenAddress token address you're swapping to
- * @param amount amount of token you're swappping from
- * @returns the current token price
- */
-export async function get1inchQuote(
-  fromTokenAddress: string,
-  toTokenAddress: string,
-  amount: string = ethers.utils.parseUnits("1.0", 18).toString()
-): Promise<number | null> {
-  let callURL =
-    "https://api.1inch.exchange/v4.0/" +
-    chainId +
-    "/quote" +
-    "?" +
-    // contract address of a token to sell
-    "fromTokenAddress=" +
-    fromTokenAddress +
-    "&" +
-    // contract address of a token to buy
-    "toTokenAddress=" +
-    toTokenAddress +
-    "&" +
-    // amount of a token to sell
-    "amount=" +
-    amount;
-
-  const result = await sendRequest(callURL);
-  if (!result) {
-    return null;
-  }
-  let tokenAmount = result.toTokenAmount;
-
-  const rate = ethers.utils.formatUnits(tokenAmount, 18).slice(0, 9);
-
-  return parseFloat(rate);
-}
-
-/**
  * Will check if there's an arbitrage opportunity using the 1inch API
  * @param fromToken token symbol you're swapping from
  * @param toToken token symbol you're swapping to
@@ -106,11 +66,11 @@ export async function checkArbitrage(
   const fromTokenDecimal = fromToken.decimals;
 
   const amount = ethers.utils.parseUnits(
-    initialAmount.toString(),
+    loanAmount.toString(),
     fromTokenDecimal
   );
   const amountDiff = ethers.utils.parseUnits(
-    (initialAmount + diffAmount).toString(),
+    (loanAmount + diffAmount).toString(),
     fromTokenDecimal
   );
 
@@ -209,7 +169,6 @@ export async function checkArbitrage(
   const isProfitable = amountDiff.lt(
     ethers.BigNumber.from(resultData2.toTokenAmount)
   );
-  // isProfitable && console.log({ firstRoute, secondRoute });
 
   const fromTokenAmount = Number(
     ethers.utils.formatUnits(
@@ -246,7 +205,7 @@ export async function checkArbitrage(
 
   // isProfitable &&
   //   console.warn(
-  //     _initialAmount,
+  //     _loanAmount,
   //     ethers.utils.formatUnits(resultData2.toTokenAmount, resultData2.toToken.decimals)
   //   );
 
